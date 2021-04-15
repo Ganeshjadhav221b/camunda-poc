@@ -47,7 +47,9 @@ public class DemoController {
     Map variables = runtimeService.getVariables(runtimeService.createProcessInstanceQuery()
         .processInstanceBusinessKey(id).singleResult().getProcessInstanceId());
     boolean valid = false;
-    String response = "Unsuccessful, attempts remaining: " + variables.get("attemptsRemaining");
+    int attempts= (int) variables.get("attemptsRemaining");
+    int attemptsremaining = 3- attempts;
+    String response = "Unsuccessful, attempts remaining: " +attemptsremaining;
     if (input.get("value") == variables.get("sum")) {
       valid = true;
       response = "success";
