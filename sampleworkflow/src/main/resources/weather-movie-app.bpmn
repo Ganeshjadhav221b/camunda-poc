@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_041lmgk" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.6.0">
+  <bpmn:process id="weather-movie-app" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1uzpas8</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_0dhjls5" sourceRef="Activity_1k5j3e3" targetRef="Activity_0nt4jr9" />
+    <bpmn:sequenceFlow id="Flow_16ypkkv" sourceRef="Activity_0nt4jr9" targetRef="Activity_1t2bhb3" />
+    <bpmn:eventBasedGateway id="Gateway_0q9mny6">
+      <bpmn:incoming>Flow_1po73qk</bpmn:incoming>
+      <bpmn:outgoing>Flow_0lhi3wr</bpmn:outgoing>
+      <bpmn:outgoing>Flow_05vdusq</bpmn:outgoing>
+    </bpmn:eventBasedGateway>
+    <bpmn:intermediateCatchEvent id="Event_0pdlalr">
+      <bpmn:incoming>Flow_0lhi3wr</bpmn:incoming>
+      <bpmn:outgoing>Flow_1ea2e6q</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0jpy7xy" messageRef="Message_1it6tok" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_0lhi3wr" sourceRef="Gateway_0q9mny6" targetRef="Event_0pdlalr" />
+    <bpmn:intermediateCatchEvent id="Event_1mxcjer">
+      <bpmn:incoming>Flow_05vdusq</bpmn:incoming>
+      <bpmn:outgoing>Flow_16ae8cx</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_1x5cwe2">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">#{requestDTO.preferenceInterval}</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_05vdusq" sourceRef="Gateway_0q9mny6" targetRef="Event_1mxcjer" />
+    <bpmn:sequenceFlow id="Flow_16ae8cx" sourceRef="Event_1mxcjer" targetRef="Activity_1k5j3e3" />
+    <bpmn:serviceTask id="Activity_1k5j3e3" name="get weather">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="Accept">*/*</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+            <camunda:inputParameter name="url">${root_url}/weather?city=${requestDTO.city}</camunda:inputParameter>
+            <camunda:inputParameter name="method">GET</camunda:inputParameter>
+            <camunda:outputParameter name="response">
+              <camunda:script scriptFormat="JavaScript" resource="scripts/weatherResponse.js" />
+            </camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_16ae8cx</bpmn:incoming>
+      <bpmn:incoming>Flow_0kitip8</bpmn:incoming>
+      <bpmn:outgoing>Flow_0dhjls5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_0nt4jr9" name="get list of movies">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="Accept">*/*</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+            <camunda:inputParameter name="url">${root_url}/movies</camunda:inputParameter>
+            <camunda:inputParameter name="method">GET</camunda:inputParameter>
+            <camunda:outputParameter name="response">
+              <camunda:script scriptFormat="JavaScript">var statusCode = connector.getVariable('statusCode');
+print("status for movie-list", statusCode);
+var res = S(response);
+print("Response: ",res);
+connector.setVariable("movie-list",res.toString());</camunda:script>
+            </camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0dhjls5</bpmn:incoming>
+      <bpmn:outgoing>Flow_16ypkkv</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_1t2bhb3" name="get best movie" camunda:class="com.example.sampleworkflow.tasks.GetBestMovie">
+      <bpmn:incoming>Flow_16ypkkv</bpmn:incoming>
+      <bpmn:outgoing>Flow_16q2tj1</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_02dsjrn" name="Validate input" camunda:class="com.example.sampleworkflow.tasks.ValidateRequest">
+      <bpmn:incoming>Flow_1uzpas8</bpmn:incoming>
+      <bpmn:outgoing>Flow_0bsp0q5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_1uzpas8" sourceRef="StartEvent_1" targetRef="Activity_02dsjrn" />
+    <bpmn:exclusiveGateway id="Gateway_03ob1wq" name="is adult?">
+      <bpmn:incoming>Flow_0bsp0q5</bpmn:incoming>
+      <bpmn:outgoing>Flow_0kitip8</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0ojnefo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_0kitip8" sourceRef="Gateway_03ob1wq" targetRef="Activity_1k5j3e3">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{isAdult}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0ojnefo" sourceRef="Gateway_03ob1wq" targetRef="Event_09xhiwu">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{not isAdult}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="Event_1b23h92">
+      <bpmn:incoming>Flow_1ea2e6q</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1ea2e6q" sourceRef="Event_0pdlalr" targetRef="Event_1b23h92" />
+    <bpmn:sequenceFlow id="Flow_0bsp0q5" sourceRef="Activity_02dsjrn" targetRef="Gateway_03ob1wq" />
+    <bpmn:endEvent id="Event_09xhiwu">
+      <bpmn:incoming>Flow_0ojnefo</bpmn:incoming>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1bd67f7" messageRef="Message_1it6tok" camunda:class="com.example.sampleworkflow.tasks.NotAdultResponse" />
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_16q2tj1" sourceRef="Activity_1t2bhb3" targetRef="Activity_17v0fof" />
+    <bpmn:sequenceFlow id="Flow_1po73qk" sourceRef="Activity_17v0fof" targetRef="Gateway_0q9mny6" />
+    <bpmn:serviceTask id="Activity_17v0fof" name="Add to DB" camunda:class="com.example.sampleworkflow.tasks.WriteBestMovie">
+      <bpmn:incoming>Flow_16q2tj1</bpmn:incoming>
+      <bpmn:outgoing>Flow_1po73qk</bpmn:outgoing>
+    </bpmn:serviceTask>
+  </bpmn:process>
+  <bpmn:message id="Message_1it6tok" name="end-flow" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="weather-movie-app">
+      <bpmndi:BPMNEdge id="Flow_1po73qk_di" bpmnElement="Flow_1po73qk">
+        <di:waypoint x="1110" y="177" />
+        <di:waypoint x="1185" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16q2tj1_di" bpmnElement="Flow_16q2tj1">
+        <di:waypoint x="950" y="177" />
+        <di:waypoint x="1010" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0bsp0q5_di" bpmnElement="Flow_0bsp0q5">
+        <di:waypoint x="323" y="177" />
+        <di:waypoint x="367" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ea2e6q_di" bpmnElement="Flow_1ea2e6q">
+        <di:waypoint x="1338" y="177" />
+        <di:waypoint x="1412" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ojnefo_di" bpmnElement="Flow_0ojnefo">
+        <di:waypoint x="392" y="202" />
+        <di:waypoint x="392" y="272" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0kitip8_di" bpmnElement="Flow_0kitip8">
+        <di:waypoint x="417" y="177" />
+        <di:waypoint x="530" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1uzpas8_di" bpmnElement="Flow_1uzpas8">
+        <di:waypoint x="188" y="177" />
+        <di:waypoint x="223" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16ae8cx_di" bpmnElement="Flow_16ae8cx">
+        <di:waypoint x="1192" y="290" />
+        <di:waypoint x="580" y="290" />
+        <di:waypoint x="580" y="217" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_05vdusq_di" bpmnElement="Flow_05vdusq">
+        <di:waypoint x="1210" y="202" />
+        <di:waypoint x="1210" y="272" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0lhi3wr_di" bpmnElement="Flow_0lhi3wr">
+        <di:waypoint x="1235" y="177" />
+        <di:waypoint x="1302" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16ypkkv_di" bpmnElement="Flow_16ypkkv">
+        <di:waypoint x="790" y="177" />
+        <di:waypoint x="850" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0dhjls5_di" bpmnElement="Flow_0dhjls5">
+        <di:waypoint x="630" y="177" />
+        <di:waypoint x="690" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="152" y="159" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_04h45s7_di" bpmnElement="Gateway_0q9mny6">
+        <dc:Bounds x="1185" y="152" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0pdlalr_di" bpmnElement="Event_0pdlalr">
+        <dc:Bounds x="1302" y="159" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1mxcjer_di" bpmnElement="Event_1mxcjer">
+        <dc:Bounds x="1192" y="272" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1v931f3_di" bpmnElement="Activity_1k5j3e3">
+        <dc:Bounds x="530" y="137" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_183q5v2_di" bpmnElement="Activity_0nt4jr9">
+        <dc:Bounds x="690" y="137" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1bzoi5s_di" bpmnElement="Activity_1t2bhb3">
+        <dc:Bounds x="850" y="137" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0o4t0yh_di" bpmnElement="Activity_02dsjrn">
+        <dc:Bounds x="223" y="137" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_03ob1wq_di" bpmnElement="Gateway_03ob1wq" isMarkerVisible="true">
+        <dc:Bounds x="367" y="152" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="372" y="122" width="41" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1b23h92_di" bpmnElement="Event_1b23h92">
+        <dc:Bounds x="1412" y="159" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_169lujg_di" bpmnElement="Event_09xhiwu">
+        <dc:Bounds x="374" y="272" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_07kd4c7_di" bpmnElement="Activity_17v0fof">
+        <dc:Bounds x="1010" y="137" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
