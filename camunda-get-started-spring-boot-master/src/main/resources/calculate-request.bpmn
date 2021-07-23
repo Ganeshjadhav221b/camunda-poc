@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1labrsy" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.6.0">
+  <bpmn:process id="calculate-request" name="calculate-request" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1v2z1l0</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1v2z1l0" sourceRef="StartEvent_1" targetRef="activity_input" />
+    <bpmn:userTask id="activity_input" name="Take 2 inputs">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="inp1" label="inp2" type="long" defaultValue="0" />
+          <camunda:formField id="inp2" label="inp2" type="long" defaultValue="0" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1v2z1l0</bpmn:incoming>
+      <bpmn:outgoing>Flow_1sb8j43</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_1sb8j43" sourceRef="activity_input" targetRef="Gateway_09wzghc" />
+    <bpmn:userTask id="activity_input-operation" name="Get operation">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="inp3" label="operation" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0l3yj23</bpmn:incoming>
+      <bpmn:outgoing>Flow_18xy6w4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_18xy6w4" sourceRef="activity_input-operation" targetRef="activity_operation" />
+    <bpmn:endEvent id="Event_1alfjx4">
+      <bpmn:incoming>Flow_103houk</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_103houk" sourceRef="activity_operation" targetRef="Event_1alfjx4" />
+    <bpmn:serviceTask id="activity_operation" name="Perform operation" camunda:class="org.camunda.bpm.getstarted.loanapproval.PerformOperation">
+      <bpmn:incoming>Flow_18xy6w4</bpmn:incoming>
+      <bpmn:outgoing>Flow_103houk</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_09wzghc">
+      <bpmn:incoming>Flow_1sb8j43</bpmn:incoming>
+      <bpmn:outgoing>Flow_0l3yj23</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1xhri18</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_0l3yj23" sourceRef="Gateway_09wzghc" targetRef="activity_input-operation">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${inp1&gt;0}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="Event_1lq8j7i">
+      <bpmn:incoming>Flow_1xhri18</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1xhri18" sourceRef="Gateway_09wzghc" targetRef="Event_1lq8j7i">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${inp1 &lt;= 0}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="calculate-request">
+      <bpmndi:BPMNEdge id="Flow_1v2z1l0_di" bpmnElement="Flow_1v2z1l0">
+        <di:waypoint x="215" y="117" />
+        <di:waypoint x="270" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1sb8j43_di" bpmnElement="Flow_1sb8j43">
+        <di:waypoint x="370" y="117" />
+        <di:waypoint x="615" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_18xy6w4_di" bpmnElement="Flow_18xy6w4">
+        <di:waypoint x="840" y="117" />
+        <di:waypoint x="890" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_103houk_di" bpmnElement="Flow_103houk">
+        <di:waypoint x="990" y="117" />
+        <di:waypoint x="1062" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0l3yj23_di" bpmnElement="Flow_0l3yj23">
+        <di:waypoint x="665" y="117" />
+        <di:waypoint x="740" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1xhri18_di" bpmnElement="Flow_1xhri18">
+        <di:waypoint x="640" y="142" />
+        <di:waypoint x="640" y="230" />
+        <di:waypoint x="742" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1o6uk79_di" bpmnElement="activity_input">
+        <dc:Bounds x="270" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1alfjx4_di" bpmnElement="Event_1alfjx4">
+        <dc:Bounds x="1062" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0l2jsdi_di" bpmnElement="activity_operation">
+        <dc:Bounds x="890" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0o4tqvn_di" bpmnElement="activity_input-operation">
+        <dc:Bounds x="740" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_09wzghc_di" bpmnElement="Gateway_09wzghc" isMarkerVisible="true">
+        <dc:Bounds x="615" y="92" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1lq8j7i_di" bpmnElement="Event_1lq8j7i">
+        <dc:Bounds x="742" y="212" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
